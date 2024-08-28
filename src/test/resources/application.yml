@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: Wishlist challenge App
+  profiles:
+    active: ${ENV:test}
+server:
+  port: ${ENV_PORT:9090}
+  servlet:
+    context-path: /api
+
+# Jackson Configuration
+jackson:
+  default-property-inclusion: NON_NULL
+
+

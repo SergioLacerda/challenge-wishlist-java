@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: Wishlist challenge App
+  profiles:
+    active: ${ENV:local}
+  data:
+    mongodb:
+      uri: ${ENV_DB_HOST:mongodb://localhost:27017/wishlist-db?authSource=admin}
+server:
+  port: ${ENV_PORT:8080}
+  servlet:
+    context-path: /api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  health:
+    status:
+      http-mapping:
+        down: 503
+        out_of_service: 503
+
+# Default configurations
+info:
+  app:
+    name: ${spring.application.name}
+  doc:
+    swagger:
+      enable: true
+
+# Jackson Configuration
+jackson:
+  default-property-inclusion: NON_NULL
+
+# Spring Boot Actuator Config
+boot:
+  admin:
+    client:
+      enabled: false
+      url: ${ENV_SPRING_BOOT_ADMIN_URL}
+      instance:
+        name: ${spring.application.name}
+        prefer-ip: true
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health, metrics
+        exclude: beans, scheduledtasks, heapdump, mappings, env, flyway, configprops, shutdown
+    endpoint:
+      health:
+        show-details: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+  log4j2:
+    config: classpath:log4j2-spring.xml
