@@ -15,8 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,6 +45,9 @@ class WishlistControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Product added to wishlist."));
+
+        verify(wishlistService, times(1)).addProduct(CUSTOMER_ID, request);
+
     }
 
     @Test
@@ -59,6 +61,9 @@ class WishlistControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Product removed from wishlist."));
+
+        verify(wishlistService, times(1)).removeProduct(CUSTOMER_ID, request);
+
     }
 
     @Test
@@ -69,6 +74,9 @@ class WishlistControllerTest {
         mockMvc.perform(get("/api/wishlist/{customerId}/products", CUSTOMER_ID))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(products)));
+
+        verify(wishlistService, times(1)).getProducts(CUSTOMER_ID);
+
     }
 
     @Test
@@ -78,5 +86,8 @@ class WishlistControllerTest {
         mockMvc.perform(get("/api/wishlist/{customerId}/check?productId={productId}", CUSTOMER_ID, PRODUCT_ID))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
+
+        verify(wishlistService, times(1)).isProductInWishlist(CUSTOMER_ID, PRODUCT_ID);
+
     }
 }

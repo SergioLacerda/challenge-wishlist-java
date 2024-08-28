@@ -72,16 +72,43 @@ class WishlistServiceTest {
     @Test
     void removeProduct_shouldRemoveProductFromWishlist() {
         ProductRequest request = new ProductRequest(PRODUCT_ID);
-        Product product = Product.builder().id(PRODUCT_ID).build();
-        Wishlist wishlist = createWishlist(new HashSet<>(Set.of(product)));
 
-        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(wishlist));
-        when(wishlistRepository.save(any(Wishlist.class))).thenReturn(wishlist);
+        Set<Product> totalProducts = createFullWishlist();
+        Set<Product> initialProducts = createFullWishlist();
+        assertTrue(totalProducts.containsAll(initialProducts));
+
+        Wishlist initialWishlist = createWishlist(initialProducts);
+
+        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(initialWishlist));
 
         wishlistService.removeProduct(CUSTOMER_ID, request);
 
-        verify(wishlistRepository, times(1)).save(wishlist);
-        assertTrue(wishlist.getProducts().isEmpty());
+        verify(wishlistRepository, times(1)).save(argThat(updatedWishlist -> {
+            Set<Product> finalProductList = updatedWishlist.getProducts();
+            assertEquals(totalProducts.size() -1, finalProductList.size());
+            assertFalse(finalProductList.containsAll(totalProducts));
+            return true;
+        }));
+    }
+
+    @Test
+    void removeProduct_shouldNotRemoveAnyProductWhenProductIsNotFound() {
+        String nonExistentProductId = "999";
+        ProductRequest request = new ProductRequest(nonExistentProductId);
+
+        Set<Product> initialProducts = createFullWishlist();
+        Wishlist initialWishlist = createWishlist(initialProducts);
+
+        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(initialWishlist));
+        when(wishlistRepository.save(any(Wishlist.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        wishlistService.removeProduct(CUSTOMER_ID, request);
+
+        verify(wishlistRepository, times(1)).save(argThat(updatedWishlist -> {
+            assertEquals(initialProducts.size(), updatedWishlist.getProducts().size());
+            assertTrue(updatedWishlist.getProducts().containsAll(initialProducts));
+            return true;
+        }));
     }
 
     @Test
@@ -115,10 +142,8 @@ class WishlistServiceTest {
 
     @Test
     void isProductInWishlist_shouldReturnTrueWhenProductExists() {
-        Product product = Product.builder().id(PRODUCT_ID).build();
-        Wishlist wishlist = createWishlist(new HashSet<>(Set.of(product)));
 
-        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(wishlist));
+        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(createWishlist(createFullWishlist())));
 
         boolean isInWishlist = wishlistService.isProductInWishlist(CUSTOMER_ID, PRODUCT_ID);
 
@@ -127,11 +152,9 @@ class WishlistServiceTest {
 
     @Test
     void isProductInWishlist_shouldReturnFalseWhenProductDoesNotExist() {
-        Wishlist wishlist = createWishlist(new HashSet<>());
+        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(createWishlist(createFullWishlist())));
 
-        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(wishlist));
-
-        boolean isInWishlist = wishlistService.isProductInWishlist(CUSTOMER_ID, PRODUCT_ID);
+        boolean isInWishlist = wishlistService.isProductInWishlist(CUSTOMER_ID, "999");
 
         assertFalse(isInWishlist);
     }
@@ -143,7 +166,7 @@ class WishlistServiceTest {
         assertThrows(BusinessException.class, () -> wishlistService.isProductInWishlist(CUSTOMER_ID, PRODUCT_ID));
     }
 
-    private static Wishlist createWishlist(HashSet<Product> product) {
+    private static Wishlist createWishlist(Set<Product> product) {
         return Wishlist.builder()
             .customer(Customer.builder().id(CUSTOMER_ID).build())
             .products(product)
@@ -151,16 +174,19 @@ class WishlistServiceTest {
     }
 
     private void prepareMockListProducts() {
-        Set<Product> products = new HashSet<>();
-        for (int i = 0; i < 20; i++) {
-            products.add(Product.builder().name(String.valueOf(i)).name(String.valueOf(i)).build());
-        }
-
         Wishlist wishlist = Wishlist.builder()
-                .customer(Customer.builder().id(CUSTOMER_ID).build())
-                .products(products)
-                .build();
+            .customer(Customer.builder().id(CUSTOMER_ID).build())
+            .products(createFullWishlist())
+            .build();
 
         when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(java.util.Optional.of(wishlist));
+    }
+
+    private static Set<Product> createFullWishlist() {
+        Set<Product> products = new HashSet<>();
+        for (int i = 0; i < 20; i++) {
+            products.add(Product.builder().id(String.valueOf(i)).name(String.valueOf(i)).build());
+        }
+        return products;
     }
 }

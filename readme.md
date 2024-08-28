@@ -2,7 +2,9 @@
 
 ## Overview
 
-This is a Spring Boot application built with Java 21. The application provides a REST API and uses MongoDB as its database. Swagger is integrated for API documentation.
+This is a Spring Boot application built with Java 17. 
+The application provides a REST API and uses MongoDB as its database. 
+Swagger is integrated for API documentation.
 
 ## Prerequisites
 
@@ -64,4 +66,14 @@ Once the application is running, you can access the Swagger UI for API documenta
 
 [Swagger UI](http://localhost:8080/api/swagger-ui/index.html)
 
+### 5. Mutation tests
 
+To perform scan use the following command:
+```bash
+./mvnw org.pitest:pitest-maven:mutationCoverage
+```
+
+After execute you can check reports on path:
+```bash
+./target/pit-reports/index.html
+```
