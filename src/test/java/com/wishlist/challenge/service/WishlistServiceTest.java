@@ -2,6 +2,7 @@ package com.wishlist.challenge.service;
 
 import com.wishlist.challenge.config.exception.BusinessDuplicatedException;
 import com.wishlist.challenge.config.exception.BusinessException;
+import com.wishlist.challenge.config.exception.BusinessNotFoundException;
 import com.wishlist.challenge.model.entity.Customer;
 import com.wishlist.challenge.model.entity.Product;
 import com.wishlist.challenge.model.entity.Wishlist;
@@ -158,7 +159,7 @@ class WishlistServiceTest {
 
         when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(BusinessException.class, () -> wishlistService.removeProduct(CUSTOMER_ID, request));
+        assertThrows(BusinessNotFoundException.class, () -> wishlistService.removeProduct(CUSTOMER_ID, request));
     }
 
     @Test
@@ -178,7 +179,7 @@ class WishlistServiceTest {
     void getProducts_shouldThrowExceptionWhenWishlistNotFound() {
         when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(BusinessException.class, () -> wishlistService.getProducts(CUSTOMER_ID));
+        assertThrows(BusinessNotFoundException.class, () -> wishlistService.getProducts(CUSTOMER_ID));
     }
 
     @Test
@@ -204,7 +205,7 @@ class WishlistServiceTest {
     void isProductInWishlist_shouldThrowExceptionWhenWishlistNotFound() {
         when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(BusinessException.class, () -> wishlistService.isProductInWishlist(CUSTOMER_ID, PRODUCT_ID));
+        assertThrows(BusinessNotFoundException.class, () -> wishlistService.isProductInWishlist(CUSTOMER_ID, PRODUCT_ID));
     }
 
     private static Wishlist createWishlist(Set<Product> product) {

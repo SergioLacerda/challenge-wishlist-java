@@ -2,6 +2,7 @@ package com.wishlist.challenge.service;
 
 import com.wishlist.challenge.config.exception.BusinessDuplicatedException;
 import com.wishlist.challenge.config.exception.BusinessException;
+import com.wishlist.challenge.config.exception.BusinessNotFoundException;
 import com.wishlist.challenge.model.entity.Customer;
 import com.wishlist.challenge.model.entity.Product;
 import com.wishlist.challenge.model.entity.Wishlist;
@@ -57,7 +58,7 @@ public class WishlistService {
 
     public void removeProduct(String customerId, ProductRequest request) {
         Wishlist wishlist = wishlistRepository.findByCustomerId(customerId)
-            .orElseThrow(() -> new BusinessException(WISHLIST_NOT_FOUND));
+            .orElseThrow(() -> new BusinessNotFoundException(WISHLIST_NOT_FOUND));
 
         wishlist.getProducts().removeIf(p -> p.getId().equals(request.productId()));
 
@@ -66,7 +67,7 @@ public class WishlistService {
 
     public Set<ProductResponse> getProducts(String customerId) {
         Wishlist wishlist = wishlistRepository.findByCustomerId(customerId)
-            .orElseThrow(() -> new BusinessException(WISHLIST_NOT_FOUND));
+            .orElseThrow(() -> new BusinessNotFoundException(WISHLIST_NOT_FOUND));
 
         return wishlist.getProducts().stream()
             .map(product -> ProductResponse.builder()
@@ -79,7 +80,7 @@ public class WishlistService {
 
     public boolean isProductInWishlist(String customerId, String productId) {
         Wishlist wishlist = wishlistRepository.findByCustomerId(customerId)
-            .orElseThrow(() -> new BusinessException(WISHLIST_NOT_FOUND));
+            .orElseThrow(() -> new BusinessNotFoundException(WISHLIST_NOT_FOUND));
 
         return wishlist.getProducts().stream().anyMatch(product -> product.getId().equals(productId));
     }
