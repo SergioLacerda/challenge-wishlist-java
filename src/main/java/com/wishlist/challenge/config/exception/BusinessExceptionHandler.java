@@ -12,4 +12,9 @@ public class BusinessExceptionHandler {
     public ResponseEntity<String> handleBusinessException(BusinessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
+    @ExceptionHandler(BusinessDuplicatedException.class)
+    public ResponseEntity<String> handleBusinessDuplicatedException(BusinessDuplicatedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 }

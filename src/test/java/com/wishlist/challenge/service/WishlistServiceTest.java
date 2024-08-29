@@ -1,5 +1,6 @@
 package com.wishlist.challenge.service;
 
+import com.wishlist.challenge.config.exception.BusinessDuplicatedException;
 import com.wishlist.challenge.config.exception.BusinessException;
 import com.wishlist.challenge.model.entity.Customer;
 import com.wishlist.challenge.model.entity.Product;
@@ -61,14 +62,54 @@ class WishlistServiceTest {
     }
 
     @Test
+    void addProduct_shouldThrowException_whenProductAlreadyExists() {
+        AddProductRequest request = new AddProductRequest(PRODUCT_ID, PRODUCT_NAME, 10.0);
+
+        Product existingProduct = Product.builder().id(PRODUCT_ID).build();
+
+        Set<Product> products = new HashSet<>();
+        products.add(existingProduct);
+
+        Wishlist wishlist = Wishlist.builder()
+            .customer(Customer.builder().id(CUSTOMER_ID).build())
+            .products(products)
+            .build();
+
+        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(wishlist));
+
+        BusinessDuplicatedException exception = assertThrows(BusinessDuplicatedException.class,
+            () -> wishlistService.addProduct(CUSTOMER_ID, request));
+        assertEquals("Product already exists in the wishlist", exception.getMessage());
+
+        verify(wishlistRepository, never()).save(any(Wishlist.class));
+    }
+
+    @Test
     void testAddProduct_ExceedLimit_ThrowsException() {
         AddProductRequest request = new AddProductRequest(PRODUCT_ID, PRODUCT_NAME, 10.0);
 
         prepareMockListProducts();
 
-        assertThrows(BusinessException.class, () -> wishlistService.addProduct(CUSTOMER_ID, request));
+        assertThrows(BusinessDuplicatedException.class, () -> wishlistService.addProduct(CUSTOMER_ID, request));
     }
 
+    @Test
+    void addProduct_shouldThrowException_whenProductLimitExceeded() {
+        Wishlist wishlist = Wishlist.builder()
+            .customer(Customer.builder().id(CUSTOMER_ID).build())
+            .products(createFullWishlist())
+            .build();
+
+        when(wishlistRepository.findByCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(wishlist));
+
+        AddProductRequest request = new AddProductRequest("999", "new", 10.0);
+
+        BusinessException exception = assertThrows(BusinessException.class,
+            () -> wishlistService.addProduct(CUSTOMER_ID, request));
+        assertEquals("Cannot add more than 20 products to the wishlist", exception.getMessage());
+
+        verify(wishlistRepository, never()).save(any(Wishlist.class));
+    }
     @Test
     void removeProduct_shouldRemoveProductFromWishlist() {
         ProductRequest request = new ProductRequest(PRODUCT_ID);

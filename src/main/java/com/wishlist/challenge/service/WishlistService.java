@@ -1,5 +1,6 @@
 package com.wishlist.challenge.service;
 
+import com.wishlist.challenge.config.exception.BusinessDuplicatedException;
 import com.wishlist.challenge.config.exception.BusinessException;
 import com.wishlist.challenge.model.entity.Customer;
 import com.wishlist.challenge.model.entity.Product;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 public class WishlistService {
 
-    private  static final String WISHLIST_NOT_FOUND = "Wishlist not found";
+    private static final String WISHLIST_NOT_FOUND = "Wishlist not found";
     private static final int PRODUCT_MAX_LIMIT_ALLOWED = 20;
 
     @Autowired
@@ -32,6 +33,13 @@ public class WishlistService {
                 .customer(Customer.builder().id(customerId).build())
                 .products(new HashSet<>())
                 .build());
+
+        boolean productExists = wishlist.getProducts().stream()
+            .anyMatch(existingProduct -> existingProduct.getId().equals(request.productId()));
+
+        if (productExists) {
+            throw new BusinessDuplicatedException("Product already exists in the wishlist");
+        }
 
         if (wishlist.getProducts().size() >= PRODUCT_MAX_LIMIT_ALLOWED) {
             throw new BusinessException("Cannot add more than 20 products to the wishlist");
