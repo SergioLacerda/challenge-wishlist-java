@@ -9,6 +9,23 @@ services:
     volumes:
       - mongo-data:/data/db
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+  springapp:
+    image: wishlist-java
+    container_name: wishlistapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/your-database-name
+    networks:
+      - backend
 
 volumes:
   mongo-data:
+
+networks:
+  backend:
