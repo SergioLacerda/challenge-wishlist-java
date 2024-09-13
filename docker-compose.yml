@@ -20,7 +20,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/your-database-name
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/wishlist-db
     networks:
       - backend
 
